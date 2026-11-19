@@ -6,10 +6,14 @@ from archive.block_io import sync_base, sync_directory, write_base_block
 from archive.catalog import ReelRecord, register_reel, validate_reel_id
 from archive.integrity import verify_block
 from archive.layout import BlockLayout, block_length, validate_layout
+from archive.recovery import (
+    RecoveredBlock, register_recovery, solve_missing, validate_groups,
+)
 from archive.workspace import Workspace, work_transaction
 
 
 _BASE_NAME = re.compile(r'base-[0-9a-f]{64}\.bin')
+_CHECKSUM = re.compile(r'[0-9a-f]{64}')
 
 
 def ingest(
@@ -44,6 +48,58 @@ def ingest(
         sync_base(path)
         sync_directory(workspace.media)
         register_reel(database, reel)
+    return reel
+
+
+def ingest_recoverable(
+    workspace: Workspace,
+    reel_id: str,
+    layout: BlockLayout,
+    blocks: Iterable[bytes | None],
+    checksums: Iterable[str],
+    groups: Iterable[tuple[str, Iterable[int], bytes]],
+) -> ReelRecord:
+    validate_reel_id(reel_id)
+    validate_layout(layout)
+    payloads = tuple(blocks)
+    checks = tuple(checksums)
+    if len(payloads) != layout.block_count or len(checks) != layout.block_count:
+        raise ValueError('layout, payload count and checksum count must agree')
+    for block_no, payload in enumerate(payloads):
+        if payload is not None and (
+            type(payload) is not bytes or len(payload) != block_length(layout, block_no)
+        ):
+            raise ValueError(f'invalid payload at block {block_no}')
+    for block_no, expected in enumerate(checks):
+        if type(expected) is not str or _CHECKSUM.fullmatch(expected) is None:
+            raise ValueError(f'invalid checksum at block {block_no}')
+    solved = solve_missing(payloads, validate_groups(layout, groups))
+    complete = tuple(
+        solved[block_no][0] if payload is None else payload
+        for block_no, payload in enumerate(payloads)
+    )
+    for block_no, (payload, expected) in enumerate(zip(complete, checks, strict=True)):
+        verify_block(payload, expected, block_no)
+    recovered = tuple(
+        RecoveredBlock(block_no, solved[block_no][0].hex(), solved[block_no][1])
+        for block_no in sorted(solved)
+    )
+
+    base_name = 'base-' + sha256(reel_id.encode('utf-8')).hexdigest() + '.bin'
+    reel = ReelRecord(reel_id, layout, base_name, checks)
+    with work_transaction(workspace) as database:
+        if database.execute('SELECT 1 FROM reels WHERE reel_id = ?', (reel_id,)).fetchone():
+            raise ValueError(f'reel number already registered: {reel_id!r}')
+        path = workspace.media / base_name
+        # A previous uncommitted import of this reel can have left an orphan.
+        with path.open('wb'):
+            pass
+        for block_no, payload in enumerate(complete):
+            write_base_block(path, layout, block_no, payload)
+        sync_base(path)
+        sync_directory(workspace.media)
+        register_reel(database, reel)
+        register_recovery(database, reel_id, recovered)
     return reel
 
 

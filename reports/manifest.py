@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 
+from archive.recovery import RecoveredBlock
 from quality.findings import BlockFinding
 from quality.reconcile import Reconciliation
 from reader.tasks import ReadTask
@@ -18,11 +19,16 @@ class ReportManifest:
     maximum: int
     hits: tuple[BlockFinding, ...]
     count: int
+    recovered_blocks: tuple[RecoveredBlock, ...] | None = None
 
 
-def build_manifest(report_id: int, task: ReadTask, totals: Reconciliation) -> ReportManifest:
+def build_manifest(
+    report_id: int, task: ReadTask, totals: Reconciliation,
+    recovered_blocks: tuple[RecoveredBlock, ...] | None = None,
+) -> ReportManifest:
     return ReportManifest(report_id, task.task_id, task.reel_id, task.version, task.source_request,
-                          totals.threshold, totals.minimum, totals.maximum, totals.hits, totals.count)
+                          totals.threshold, totals.minimum, totals.maximum, totals.hits,
+                          totals.count, recovered_blocks)
 
 
 def encode_manifest(manifest: ReportManifest) -> str:
@@ -39,6 +45,11 @@ def encode_manifest(manifest: ReportManifest) -> str:
         'hits': [[hit.block_no, format(hit.value, 'x')] for hit in manifest.hits],
         'count': manifest.count,
     }
+    if manifest.recovered_blocks is not None:
+        payload['recovered_blocks'] = [
+            [item.block_no, item.original_hex, list(item.group_ids)]
+            for item in manifest.recovered_blocks
+        ]
     return json.dumps(payload, sort_keys=True, separators=(',', ':'))
 
 
@@ -47,6 +58,11 @@ def decode_manifest(payload: str) -> ReportManifest:
     for field in ('threshold', 'minimum', 'maximum'):
         fields[field] = int(fields[field], 16)
     fields['hits'] = tuple(BlockFinding(block_no, int(value, 16)) for block_no, value in fields['hits'])
+    if fields.get('recovered_blocks') is not None:
+        fields['recovered_blocks'] = tuple(
+            RecoveredBlock(block_no, original_hex, tuple(group_ids))
+            for block_no, original_hex, group_ids in fields['recovered_blocks']
+        )
     if fields['count'] != len(fields['hits']):
         raise ValueError('sealed report count does not match its findings')
     return ReportManifest(**fields)

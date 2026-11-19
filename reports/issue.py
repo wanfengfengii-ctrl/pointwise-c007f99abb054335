@@ -1,4 +1,5 @@
 from archive.catalog import get_reel
+from archive.recovery import recovered_blocks
 from archive.workspace import Workspace, work_transaction
 from quality.reconcile import reconcile
 from quality.thresholds import validate_threshold
@@ -17,8 +18,9 @@ def issue_report(workspace: Workspace, task_id: int, threshold: int) -> ReportMa
         if task.cursor != reel.layout.block_count:
             raise ValueError('task has unread blocks')
         totals = reconcile(iter_observations(database, task_id), reel.layout.block_count, threshold)
+        recovered = recovered_blocks(database, task.reel_id)
         row = database.execute("INSERT INTO reports(task_id, manifest) VALUES (?, '')", (task_id,))
-        manifest = build_manifest(row.lastrowid, task, totals)
+        manifest = build_manifest(row.lastrowid, task, totals, recovered)
         database.execute('UPDATE reports SET manifest = ? WHERE report_id = ?',
                          (encode_manifest(manifest), manifest.report_id))
         return manifest

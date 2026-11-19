@@ -67,6 +67,13 @@ CREATE TABLE IF NOT EXISTS reports (
     task_id INTEGER NOT NULL REFERENCES tasks(task_id),
     manifest TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS recovered_blocks (
+    reel_id TEXT NOT NULL REFERENCES reels(reel_id),
+    block_no INTEGER NOT NULL,
+    original_hex TEXT NOT NULL,
+    group_ids TEXT NOT NULL,
+    PRIMARY KEY (reel_id, block_no)
+);
 '''
 
 
