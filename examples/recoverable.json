@@ -1,0 +1,30 @@
+{
+  "reel_id": "coil-gap",
+  "block_count": 4,
+  "block_width": 1,
+  "blocks_hex": ["0c", null, null, null],
+  "checksums": [
+    "ef6cbd2161eaea7943ce8693b9824d23d1793ffb1c0fca05b600d3899b44c977",
+    "f299791cddd3d6664f6670842812ef6053eb6501bd6282a476bbbf3ee91e750c",
+    "68aa2e2ee5dff96e3355e6c7ee373e3d6a4e17f75f9518d843709c0c9bc3e3d4",
+    "ffe679bb831c95b67dc17819c63c5090d221aac6f4c7bf530f594ab43d21fa1e"
+  ],
+  "groups": [
+    ["A", [1, 2], "0b"],
+    ["B", [2, 3], "06"],
+    ["C", [1, 2, 3], "14"]
+  ],
+  "correction": {
+    "request_id": "replace-recovered",
+    "parent_version": 1,
+    "replacements": [[3, "21"]]
+  },
+  "expected": {
+    "threshold": 26,
+    "original_values": [12, 18, 25, 31],
+    "amended_values": [12, 18, 25, 33],
+    "original_hits": [{"block_no": 3, "value": 31}],
+    "amended_hits": [{"block_no": 3, "value": 33}],
+    "recovered_blocks_hex": [[1, "12"], [2, "19"], [3, "1f"]]
+  }
+}

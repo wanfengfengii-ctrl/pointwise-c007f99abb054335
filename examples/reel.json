@@ -1,0 +1,12 @@
+{
+  "reel_id": "coil-04",
+  "block_count": 4,
+  "block_width": 4,
+  "blocks_hex": ["0c000000", "12000000", "19000000", "1f000000"],
+  "checksums": [
+    "42f4aeb81c1ef81f771f3de8abca9dcf66901c575530e7672e4b1146474ae650",
+    "7d8e29fa389a36cca29bc0f07a7892dddd6f9070b9e33d12dce8ce3569f81810",
+    "0623ccb9b1619bd388284a438034d8cb6431964ba727d8b1c450303105735488",
+    "efbe2f505a2756a0891b40d01d0a7135774bbd38cdc526def968d28a7e309452"
+  ]
+}

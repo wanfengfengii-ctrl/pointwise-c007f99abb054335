@@ -1,0 +1,19 @@
+{
+  "reel_id": "coil-04",
+  "request_id": "replace-tail",
+  "identity": "d53a67bc0fea9a8add36ecdd8e96c40795a98a4aac6bcf6d4d0a2001e85e95cc",
+  "base_hex": "0c00000012000000190000001f000000",
+  "correction_hex": "1a00000021000000",
+  "original_checks": [
+    "42f4aeb81c1ef81f771f3de8abca9dcf66901c575530e7672e4b1146474ae650",
+    "7d8e29fa389a36cca29bc0f07a7892dddd6f9070b9e33d12dce8ce3569f81810",
+    "0623ccb9b1619bd388284a438034d8cb6431964ba727d8b1c450303105735488",
+    "efbe2f505a2756a0891b40d01d0a7135774bbd38cdc526def968d28a7e309452"
+  ],
+  "slots": [
+    [2, 0, "3ef3bd3d6658c0dfdfdd7aa65e3d92bf1da9a04678a4ed2a5d84ed824ec91775"],
+    [3, 1, "9a090610d0aa9445db0890179a9dea330334e3b9086987e93af97dbc978fe311"]
+  ],
+  "old_task": 41,
+  "new_task": 42
+}

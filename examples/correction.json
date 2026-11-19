@@ -1,0 +1,6 @@
+{
+  "reel_id": "coil-04",
+  "request_id": "replace-tail",
+  "parent_version": 1,
+  "replacements": [[2, "1a000000"], [3, "21000000"]]
+}
